@@ -1,0 +1,25 @@
+pipeline {
+    agent any 
+            stages {
+        stage("Load configuration") {
+            steps {
+                load "jkenvs/${env.JOB_NAME}.groovy"
+                dir("jkconfigs") {
+                    git(
+                        url: "$INFRA_CONFIG_GIT_URL",
+                        credentialsId: "$INFRA_CONFIG_GIT_CREDENTIAL_ID"
+                    )
+                }
+                sh "mv jkconfigs/terraform.tfvars ."
+                sh "rm -rf jkconfigs"
+            }
+        }
+        stage("Deploy") {
+            steps { 
+                sh "terraform init"
+                sh "terraform apply -auto-approve"
+            }
+            
+        }
+    }
+  }
